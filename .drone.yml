@@ -1,0 +1,303 @@
+kind: pipeline
+name: default
+
+platform:
+  os: linux
+  arch: amd64
+
+steps:
+- name: generate dockerfiles
+  image: alpine/git
+  commands:
+  - apk add curl jq bash
+  - ./generate-dockerfiles.sh
+
+- name: export amd64 tag
+  image: alpine/git
+  commands:
+  - apk add curl jq bash
+  - ./export-tags.sh amd64
+
+- name: build-amd64
+  image: plugins/docker
+  settings:
+    custom_dns: 1.1.1.1
+    dry_run: True
+    dockerfile: Dockerfile.amd64
+    repo: longhornio/minio
+  when:
+    branch:
+    - main
+
+- name: export arm64 tag
+  image: alpine/git
+  commands:
+  - apk add curl jq bash
+  - ./export-tags.sh arm64
+
+- name: build-arm64
+  image: plugins/docker
+  settings:
+    custom_dns: 1.1.1.1
+    dry_run: True
+    dockerfile: Dockerfile.arm64
+    repo: longhornio/minio
+  when:
+    branch:
+    - main
+
+- name: export arm tag
+  image: alpine/git
+  commands:
+  - apk add curl jq bash
+  - ./export-tags.sh arm
+
+- name: build-arm
+  image: plugins/docker
+  settings:
+    custom_dns: 1.1.1.1
+    dry_run: True
+    dockerfile: Dockerfile.arm
+    repo: longhornio/minio
+  when:
+    branch:
+    - main
+
+- name: export ppc64le tag
+  image: alpine/git
+  commands:
+  - apk add curl jq bash
+  - ./export-tags.sh ppc64le
+
+- name: build-ppc64le
+  image: plugins/docker
+  settings:
+    custom_dns: 1.1.1.1
+    dry_run: True
+    dockerfile: Dockerfile.ppc64le
+    repo: longhornio/minio
+  when:
+    branch:
+    - main
+
+- name: export s390x tag
+  image: alpine/git
+  commands:
+  - apk add curl jq bash
+  - ./export-tags.sh s390x
+
+- name: build-s390x
+  image: plugins/docker
+  settings:
+    custom_dns: 1.1.1.1
+    dry_run: True
+    dockerfile: Dockerfile.s390x
+    repo: longhornio/minio
+  when:
+    branch:
+    - main
+---
+kind: pipeline
+name: publish
+
+platform:
+  os: linux
+  arch: amd64
+
+steps:
+- name: generate dockerfiles
+  image: alpine/git
+  commands:
+  - apk add curl jq bash
+  - ./generate-dockerfiles.sh
+  when:
+    instance:
+    - drone-publish.longhorn.io
+    branch:
+    - main
+    event:
+    - push
+
+- name: export amd64 tag
+  image: alpine/git
+  commands:
+  - apk add curl jq bash
+  - ./export-tags.sh amd64
+  when:
+    instance:
+    - drone-publish.longhorn.io
+    branch:
+    - main
+    event:
+    - push
+
+- name: publish-amd64
+  image: plugins/docker
+  settings:
+    username:
+      from_secret: docker_username
+    password:
+      from_secret: docker_password
+    custom_dns: 1.1.1.1
+    dockerfile: Dockerfile.amd64
+    repo: longhornio/minio
+  when:
+    instance:
+    - drone-publish.longhorn.io
+    branch:
+    - main
+    event:
+    - push
+
+- name: export arm64 tag
+  image: alpine/git
+  commands:
+  - apk add curl jq bash
+  - ./export-tags.sh arm64
+  when:
+    instance:
+    - drone-publish.longhorn.io
+    branch:
+    - main
+    event:
+    - push
+
+- name: publish-arm64
+  image: plugins/docker
+  settings:
+    username:
+      from_secret: docker_username
+    password:
+      from_secret: docker_password
+    custom_dns: 1.1.1.1
+    dockerfile: Dockerfile.arm64
+    repo: longhornio/minio
+  when:
+    instance:
+    - drone-publish.longhorn.io
+    branch:
+    - main
+    event:
+    - push
+
+- name: export arm tag
+  image: alpine/git
+  commands:
+  - apk add curl jq bash
+  - ./export-tags.sh arm
+  when:
+    instance:
+    - drone-publish.longhorn.io
+    branch:
+    - main
+    event:
+    - push
+
+- name: publish-arm
+  image: plugins/docker
+  settings:
+    username:                                                                   
+      from_secret: docker_username                                              
+    password:                                                                   
+      from_secret: docker_password
+    custom_dns: 1.1.1.1
+    dockerfile: Dockerfile.arm
+    repo: longhornio/minio
+  when:
+    instance:
+    - drone-publish.longhorn.io
+    branch:
+    - main
+    event:
+    - push
+
+- name: export ppc64le tag
+  image: alpine/git
+  commands:
+  - apk add curl jq bash
+  - ./export-tags.sh ppc64le
+  when:
+    instance:
+    - drone-publish.longhorn.io
+    branch:
+    - main
+    event:
+    - push
+
+- name: publish-ppc64le
+  image: plugins/docker
+  settings:
+    username:                                                                   
+      from_secret: docker_username                                              
+    password:                                                                   
+      from_secret: docker_password
+    custom_dns: 1.1.1.1
+    dockerfile: Dockerfile.ppc64le
+    repo: longhornio/minio
+  when:
+    instance:
+    - drone-publish.longhorn.io
+    branch:
+    - main
+    event:
+    - push
+
+- name: export s390x tag
+  image: alpine/git
+  commands:
+  - apk add curl jq bash
+  - ./export-tags.sh s390x
+  when:
+    instance:
+    - drone-publish.longhorn.io
+    branch:
+    - main
+    event:
+    - push
+
+- name: publish-s390x
+  image: plugins/docker
+  settings:
+    username:                                                                   
+      from_secret: docker_username                                              
+    password:                                                                   
+      from_secret: docker_password
+    custom_dns: 1.1.1.1
+    dockerfile: Dockerfile.s390x
+    repo: longhornio/minio
+  when:
+    instance:
+    - drone-publish.longhorn.io
+    branch:
+    - main
+    event:
+    - push
+
+- name: generate manifest template
+  image: alpine/git
+  commands:
+  - apk add curl jq bash
+  - ./generate-manifest-template.sh
+  when:
+    instance:
+    - drone-publish.longhorn.io
+    branch:
+    - main
+    event:
+    - push
+
+- name: generate manifest
+  image: plugins/manifest:1
+  settings:
+    username:
+      from_secret: docker_username
+    password:
+      from_secret: docker_password
+    spec: manifest.tmpl
+  when:
+    instance:
+    - drone-publish.longhorn.io
+    branch:
+    - main
+    event:
+    - push
